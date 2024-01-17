@@ -1,0 +1,80 @@
+#!/bin/bash
+
+USER_FILE="users.txt"
+
+mask_password_input() {
+    # Function to mask password input with asterisks
+    local password=""
+    while IFS= read -s -n 1 char; do
+        [[ $char == $'\0' ]] && break
+        echo -n "*"
+        password+="$char"
+    done
+    echo "$password"
+}
+
+register_user() {
+    echo "Enter username:"
+    read username
+
+    # Check if the username already exists
+    if grep -q "^$username:" "$USER_FILE"; then
+        echo "Username already exists. Please choose a different one."
+        return 1
+    fi
+
+    echo -n "Enter password: "
+    password=$(mask_password_input)
+    echo
+
+    # Hash the password
+    hashed_password=$(echo -n "$password" | md5sum | cut -d ' ' -f 1)
+
+    echo "$username:$hashed_password" >> "$USER_FILE"
+    echo "User registered successfully."
+}
+
+login_user() {
+    echo "Enter username:"
+    read username
+
+    # Check if the username exists
+    if ! grep -q "^$username:" "$USER_FILE"; then
+        echo "Username not found. Please register first."
+        return 1
+    fi
+
+    echo -n "Enter password: "
+    entered_password=$(mask_password_input)
+    echo
+
+    # Hash the entered password for comparison
+    entered_password_hash=$(echo -n "$entered_password" | md5sum | cut -d ' ' -f 1)
+
+    stored_password_hash=$(grep "^$username:" "$USER_FILE" | cut -d ':' -f 2)
+
+    # Check if the entered password hash matches the stored hash
+    if [ "$entered_password_hash" == "$stored_password_hash" ]; then
+        echo "Login successful."
+    else
+        echo "Incorrect password. Login failed."
+    fi
+}
+
+# Main program
+echo "1. Register"
+echo "2. Login"
+read choice
+
+case $choice in
+    1)
+        register_user
+        ;;
+    2)
+        login_user
+        ;;
+    *)
+        echo "Invalid choice."
+        ;;
+esac
+

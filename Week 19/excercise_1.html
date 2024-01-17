@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linux Permission Converter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+
+        label {
+            display: inline-block;
+            width: 50px;
+            margin: 5px;
+            font-weight: bold;
+        }
+
+        input[type="checkbox"] {
+            display: none;
+        }
+
+        input[type="checkbox"] + label {
+            background-color: #3498db;
+            color: white;
+            padding: 8px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        input[type="checkbox"]:checked + label {
+            background-color: #2ecc71;
+        }
+
+        #clearBtn {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #permissionInput {
+            margin-top: 10px;
+            padding: 10px;
+            width: 200px;
+            font-size: 16px;
+        }
+
+        #convertBtn {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Linux Permission Converter</h2>
+        Owner
+    <div>
+        <input type="checkbox" id="readUser" value="4"><label for="readUser">Read</label>
+        <input type="checkbox" id="writeUser" value="2"><label for="writeUser">Write</label>
+        <input type="checkbox" id="executeUser" value="1"><label for="executeUser">Execute</label>
+    </div>
+        Group 
+    <div>
+        <input type="checkbox" id="readGroup" value="4"><label for="readGroup">Read</label>
+        <input type="checkbox" id="writeGroup" value="2"><label for="writeGroup">Write</label>
+        <input type="checkbox" id="executeGroup" value="1"><label for="executeGroup">Execute</label>
+    </div>
+        Other
+    <div>
+        <input type="checkbox" id="readOthers" value="4"><label for="readOthers">Read</label>
+        <input type="checkbox" id="writeOthers" value="2"><label for="writeOthers">Write</label>
+        <input type="checkbox" id="executeOthers" value="1"><label for="executeOthers">Execute</label>
+    </div>
+    <button id="clearBtn" onclick="clearPermission()">Clear</button>
+    <input type="text" id="permissionInput" placeholder="Permission String (e.g., rwxr-xr--)">
+    <button id="convertBtn" onclick="convertPermission()">Convert</button>
+    <p id="result"></p>
+
+    <script>
+        function convertPermission() {
+            var resultElement = document.getElementById("result");
+
+            var permissionString = getPermissionString();
+            if (!permissionString) {
+                resultElement.innerHTML = "Invalid permission string. Please select permissions.";
+                return;
+            }
+
+            var permissionArray = permissionString.split('');
+            var permissionValue = 0;
+
+            for (var i = 0; i < permissionArray.length; i += 3) {
+                var chunk = permissionArray.slice(i, i + 3).join('');
+                var value = 0;
+
+                for (var j = 0; j < 3; j++) {
+                    if (chunk[j] !== '-') {
+                        value += parseInt(chunk[j]);
+                    }
+                }
+
+                permissionValue = permissionValue * 8 + value;
+            }
+
+            resultElement.innerHTML = "Octal Representation: " + permissionValue;
+        }
+
+        function getPermissionString() {
+            var permissionString = "";
+            var checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            
+            checkboxes.forEach(function (checkbox) {
+                permissionString += checkbox.checked ? checkbox.value : '-';
+            });
+
+            return permissionString;
+        }
+
+        function clearPermission() {
+            var checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(function (checkbox) {
+                checkbox.checked = false;
+            });
+
+            document.getElementById("result").innerHTML = "";
+        }
+    </script>
+</body>
+</html>

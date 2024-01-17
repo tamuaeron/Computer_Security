@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password with Emojis</title>
+</head>
+<body>
+    <h1>Password with Emojis</h1>
+    <label for="passwordInput">Enter Password:</label>
+    <input type="password" id="passwordInput" oninput="updatePassword()">
+    <div id="passwordOutput"></div>
+
+    <script>
+        function updatePassword() {
+            const passwordInput = document.getElementById('passwordInput');
+            const passwordOutput = document.getElementById('passwordOutput');
+            const password = passwordInput.value;
+
+            // Convert password to UTF-8 encoded bytes
+            const encoder = new TextEncoder();
+            const utf8Bytes = encoder.encode(password);
+
+            // Create a simple mapping from UTF-8 bytes to emoji images
+            const emojiMapping = [
+                'path/to/emoji1.png',
+                'path/to/emoji2.png',
+                'path/to/emoji3.png',
+                
+                // Add more image paths as needed
+            ];
+
+            // Display emoji images based on UTF-8 bytes
+            let emojiPassword = '';
+            for (let i = 0; i < utf8Bytes.length; i++) {
+                const emojiIndex = utf8Bytes[i] % emojiMapping.length;
+                emojiPassword += `<img src="${emojiMapping[emojiIndex]}" alt="emoji"> `;
+            }
+
+            passwordOutput.innerHTML = 'Password with Emojis: ' + emojiPassword;
+        }
+    </script>
+</body>
+</html>

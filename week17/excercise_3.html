@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toy OTP Scheme</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+        }
+        input {
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Toy OTP Scheme</h2>
+
+    <!-- Registration Form -->
+    <form id="registrationForm">
+        <label for="username">Username:</label>
+        <input type="text" id="username" required>
+        <label for="password">Password:</label>
+        <input type="password" id="password" required>
+        <button type="button" onclick="registerUser()">Register</button>
+    </form>
+
+    <!-- Login Form -->
+    <form id="loginForm" style="display:none;">
+        <label for="loginUsername">Username:</label>
+        <input type="text" id="loginUsername" required>
+        <label for="loginPassword">Password:</label>
+        <input type="password" id="loginPassword" required>
+        <button type="button" onclick="loginUser()">Login</button>
+    </form>
+
+    <script>
+        const users = []; // Simulate user storage (for demo purposes)
+        let currentUser;
+
+        function generateSalt() {
+            return Math.floor(Math.random() * 1000000000);
+        }
+
+        function hashPassword(password, salt) {
+            return password + salt;
+        }
+
+        function generateOTP() {
+            return Math.floor(Math.random() * 900000) + 100000;
+        }
+
+        function registerUser() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const salt = generateSalt();
+            const hashedPassword = hashPassword(password, salt);
+
+            const user = { username, salt, hashedPassword };
+            users.push(user);
+
+            // Hide registration form and show login form
+            document.getElementById('registrationForm').style.display = 'none';
+            document.getElementById('loginForm').style.display = 'block';
+        }
+
+        function loginUser() {
+            const loginUsername = document.getElementById('loginUsername').value;
+            const loginPassword = document.getElementById('loginPassword').value;
+
+            // Find the user based on entered username and password
+            currentUser = users.find(user => user.username === loginUsername && user.hashedPassword === hashPassword(loginPassword, user.salt));
+
+            if (currentUser) {
+                // Generate and display OTP after successful login
+                const otp = generateOTP();
+                alert(`Generated OTP: ${otp}`);
+
+                // Prompt "Login successful" after OTP confirmation
+                const enteredOTP = prompt('Enter the OTP received:');
+                if (enteredOTP && enteredOTP === otp.toString()) {
+                    // Redirect to the success page after successful login
+                    window.location.href = 'success.html';
+                } else {
+                    alert('Invalid OTP. Please try again.');
+                }
+            } else {
+                alert('Invalid username or password. Please try again.');
+            }
+        }
+    </script>
+</body>
+</html>

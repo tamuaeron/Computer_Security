@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personalized Dictionary Attack</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px;
+        }
+        textarea {
+            margin-top: 10px;
+            width: 100%;
+            height: 100px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Personalized Dictionary Attack</h2>
+
+    <form id="passwordCrackerForm">
+        <label for="hashValue">Hash Value:</label>
+        <input type="text" id="hashValue" value="fc2298f491eac4cff95e7568806e088a901c904cda7dd3221f551e5b89b3c3aa" readonly>
+
+        <label for="salt">Salt:</label>
+        <input type="text" id="salt" value="5UA@/Mw^%He]SBaU" readonly>
+
+        <label for="dictionary">Personalized Dictionary:</label>
+        <textarea id="dictionary" rows="4" cols="50" readonly></textarea>
+
+        <label for="result">Result:</label>
+        <textarea id="result" rows="4" cols="50" readonly></textarea>
+
+        <button type="button" onclick="performAttack()">Perform Attack</button>
+    </form>
+
+    <script>
+        function generatePersonalizedDictionary(userInfo) {
+            const dictionary = [];
+
+            // Variations of the username
+            dictionary.push(userInfo.username);
+            dictionary.push(userInfo.username.toLowerCase());
+            dictionary.push(userInfo.username.charAt(0).toUpperCase() + userInfo.username.slice(1));
+
+            // Substring variations based on hints
+            dictionary.push(userInfo.mother);
+            dictionary.push(userInfo.husbandBirthday.substring(0, 2)); // Day of husband's birthday
+
+            // Combine aspects in different orders
+            dictionary.push(userInfo.mother + userInfo.husbandBirthday.substring(0, 2)); // Jean29
+            dictionary.push(userInfo.husbandBirthday.substring(0, 2) + userInfo.mother); // 29Jean
+
+            return dictionary;
+        }
+
+        function personalizedDictionaryAttack(hashValue, salt, userInfo) {
+            const dictionary = generatePersonalizedDictionary(userInfo);
+
+            return new Promise((resolve, reject) => {
+                let counter = 0;
+
+                function hashNext() {
+                    if (counter < dictionary.length) {
+                        const candidate = dictionary[counter] + salt;
+
+                        sha256(candidate)
+                            .then(hashedPassword => {
+                                if (hashedPassword === hashValue) {
+                                    resolve({ password: dictionary[counter], dictionary });
+                                } else {
+                                    counter++;
+                                    hashNext();
+                                }
+                            })
+                            .catch(error => reject(error));
+                    } else {
+                        resolve({ password: null, dictionary });
+                    }
+                }
+
+                hashNext();
+            });
+        }
+
+        function sha256(message) {
+            return new Promise((resolve, reject) => {
+                const encoder = new TextEncoder();
+                const data = encoder.encode(message);
+
+                crypto.subtle.digest("SHA-256", data)
+                    .then(buffer => {
+                        const hashArray = Array.from(new Uint8Array(buffer));
+                        const hashHex = hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
+                        resolve(hashHex);
+                    })
+                    .catch(error => reject(error));
+            });
+        }
+
+        function performAttack() {
+            const hashValue = document.getElementById('hashValue').value;
+            const salt = document.getElementById('salt').value;
+
+            const userInfo = {
+                username: 'laplusbelle',
+                name: 'Marie',
+                surname: 'Curie',
+                pet: 'Woof',
+                birthday: '2 January, 1980',
+                employer: 'UKC (University of Kent in Canterbury)',
+                mother: 'Jean Neoskour',
+                father: 'Jvaist Fairecourir',
+                husband: 'Eltrofor',
+                husbandBirthday: '29 December, 1981'
+            };
+
+            personalizedDictionaryAttack(hashValue, salt, userInfo)
+                .then(result => {
+                    const dictionaryOutput = result.dictionary.join('\n');
+                    document.getElementById('dictionary').value = dictionaryOutput;
+
+                    if (result.password) {
+                        document.getElementById('result').value = `Password found: ${result.password}`;
+                    } else {
+                        document.getElementById('result').value = "Password not found in the personalized dictionary.";
+                    }
+                })
+                .catch(error => {
+                    console.error("Error:", error.message);
+                });
+        }
+    </script>
+</body>
+</html>

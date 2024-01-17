@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Cracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+        }
+        input {
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Password Cracker</h2>
+
+    <form id="passwordCrackerForm">
+        <label for="targetHash">Target Hash:</label>
+        <input type="text" id="targetHash" value="3ddcd95d2bff8e97d3ad817f718ae207b98c7f2c84c5519f89cd15d7f8ee1c3b" readonly>
+        <button type="button" onclick="crackPassword()">Crack Password</button>
+    </form>
+
+    <script>
+        const targetHash = document.getElementById('targetHash').value;
+
+        async function crackPassword() {
+            try {
+                // Fetch password list from the phpbb.txt file
+                const response = await fetch('https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/Leaked-Databases/phpbb.txt');
+                const passwordsText = await response.text();
+
+                // Convert the text to an array of passwords
+                const passwordList = passwordsText.split('\n').map(password => password.trim());
+
+                // Iterate through passwords
+                for (const password of passwordList) {
+                    // Generate hash using SHA-256
+                    const hashedPassword = await sha256(password);
+
+                    // Check if the generated hash matches the target hash
+                    if (hashedPassword === targetHash) {
+                        alert(`Password found: ${password}`);
+                        return;
+                    }
+                }
+
+                alert("Password not found in the password list.");
+            } catch (error) {
+                console.error("Error fetching or processing password list:", error.message);
+            }
+        }
+
+        async function sha256(message) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(message);
+            const buffer = await crypto.subtle.digest("SHA-256", data);
+            const hashArray = Array.from(new Uint8Array(buffer));
+            return hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
+        }
+    </script>
+</body>
+</html>
